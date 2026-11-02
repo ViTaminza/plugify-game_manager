@@ -108,7 +108,9 @@ struct EngineTimerRecord {
 };
 std::vector<EngineTimerRecord> g_timers;
 std::vector<uint32_t> g_killedTimers;
-uint32_t g_nextTimerId = 0;
+uint32_t g_nextTimerId = 1;
+bool g_failTimerCreation = false;
+s2sdk::TimerId g_timerFailureId = 0;
 
 std::vector<std::pair<std::string, plg::Severity>> g_logs;
 
@@ -344,6 +346,9 @@ float FakeGetGameTime() { return g_gameTime; }
 plg::string FakeGetCurrentMap() { return ToPlg(g_currentMap); }
 s2sdk::TimerId FakeCreateTimer(double delay, s2sdk::TimerCallback callback, s2sdk::TimerFlag flags,
 							   const plg::vector<plg::any>&) {
+	if (g_failTimerCreation) {
+		return g_timerFailureId;
+	}
 	EngineTimerRecord timer;
 	timer.id = g_nextTimerId++;
 	timer.delay = delay;
@@ -565,7 +570,9 @@ void ClearCallRecords() {
 	g_schemaWrites.clear();
 	g_timers.clear();
 	g_killedTimers.clear();
-	g_nextTimerId = 0;
+	g_nextTimerId = 1;
+	g_failTimerCreation = false;
+	g_timerFailureId = 0;
 	g_logs.clear();
 	g_messageLookups.clear();
 	g_invalidHandles.clear();
@@ -1342,6 +1349,38 @@ void TestCorpseModesAndHandles() {
 	CheckTeardownIsExact("corpse modes and handles");
 }
 
+void TestCorpseFadeTimerCreationFailure() {
+	std::printf("-- corpse fade timer creation failure\n");
+	ResetWorld();
+	ConnectPlayers();
+	ClearAllRecords();
+	WriteConfig(R"({"GameManager":{"HideCorpses":2}})");
+	Check(IsPluginOk(g_gameManagerPlugin.OnPluginStart()), "start for timer failure succeeds");
+	BeginMap();
+
+	FakeEvent death;
+	death.victim = 2;
+	death.attacker = 3;
+	for (const s2sdk::TimerId failedId : {0U, static_cast<s2sdk::TimerId>(-1)}) {
+		ClearCallRecords();
+		g_failTimerCreation = true;
+		g_timerFailureId = failedId;
+		OnRawGameEvent(ToPlg("player_death"), &death, false);
+		RunUpdate();
+		Check(g_timers.empty(), "failed timer creation leaves no engine timer");
+		Check(g_corpseTimers.empty(), "failed timer creation leaves no timer lookup entry");
+		Check(g_corpses.size() == 1 && g_corpses.front()->timer == kNoTimer,
+			  "failed timer creation leaves the corpse timer unassigned");
+		Check(!g_alphaWrites.empty() && g_alphaWrites.back().second == 0,
+			  "failed timer creation immediately hides the corpse");
+		ForgetCorpses(-1, 0);
+		Check(g_killedTimers.empty(), "cleanup never kills a failed timer id");
+	}
+	g_failTimerCreation = false;
+	Check(IsPluginOk(g_gameManagerPlugin.OnPluginEnd()), "end after timer failure succeeds");
+	CheckTeardownIsExact("corpse fade timer creation failure");
+}
+
 void TestCorpseFadeTimerLifecycle() {
 	std::printf("-- corpse fade timer lifecycle\n");
 
@@ -1564,6 +1603,7 @@ int main() {
 	TestReloadCommandOwnershipAndSource();
 	TestNativeCommands();
 	TestCorpseModesAndHandles();
+	TestCorpseFadeTimerCreationFailure();
 	TestCorpseFadeTimerLifecycle();
 	TestUserMessageResolutionAndFilters();
 	TestMessageResolutionOrder();

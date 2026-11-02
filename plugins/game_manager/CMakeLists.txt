@@ -10,7 +10,7 @@
 #                           also used by tests/game_manager_tests.cpp)
 #   plugify-game_manager    the plugin shared library (entry "bin/game_manager")
 
-set(GAME_MANAGER_VERSION "1.1.0")
+set(GAME_MANAGER_VERSION "1.1.1")
 
 # --- s2sdk binding globals ----------------------------------------------------------------
 # The root CMakeLists defines s2sdk_bindings before it globs plugins/* (the glob is sorted, and the

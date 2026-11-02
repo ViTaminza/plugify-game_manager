@@ -7,12 +7,12 @@ The code was rewritten for Plugify / s2sdk.
 
 ## Requirements
 - [Plugify](https://github.com/untrustedmodders/plugify) with [s2sdk](https://github.com/untrustedmodders/plugify-plugin-s2sdk)
-- Plugin version: 1.1.0
-- Plugify dependencies: s2sdk (>=2.18.2)
+- Plugin version: 1.1.1
+- Plugify dependencies: s2sdk (>=3.0.5)
 - Self-contained s2sdk integration: uses s2sdk directly, without the pisexcompat library.
 
 ## Installation
-Download `game_manager-1.1.0.zip` from Releases and extract it into `game/csgo/`.
+Download `game_manager-1.1.1.zip` from Releases and extract it into `game/csgo/`.
 
 ## Building
 Requires Docker. `./build.sh` builds in the Steam Runtime 3 (sniper) SDK image; the package

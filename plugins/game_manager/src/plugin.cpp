@@ -567,8 +567,8 @@ struct Corpse {
 
 std::vector<std::shared_ptr<Corpse>> g_corpses;
 // Timer id -> the corpse whose fade it drives. Removed together with KillsTimer, so a late engine
-// fire after StopCorpseFade cannot reach a dead record (and s2sdk timer ids start at 0, so 0 is a
-// real id - kNoTimer is the -1 sentinel, exactly like CreateTimer's failure value).
+// fire after StopCorpseFade cannot reach a dead record. With s2sdk >= 3.0.5, timer ids start at 1;
+// 0 is an API failure, while kNoTimer remains our internal marker for an unassigned timer.
 std::map<s2sdk::TimerId, std::weak_ptr<Corpse>> g_corpseTimers;
 
 void StopCorpseFade(Corpse& corpse) {
@@ -712,7 +712,7 @@ void StartCorpseFade(const std::shared_ptr<Corpse>& corpse) {
 			static_cast<int32_t>(s2sdk::TimerFlag::Repeat) | static_cast<int32_t>(s2sdk::TimerFlag::NoMapChange));
 		const s2sdk::TimerId timer =
 			s2sdk::CreateTimer(kCorpseFadeStepSeconds, &OnCorpseFadeTimer, flags, plg::vector<plg::any>{});
-		if (timer == kNoTimer) {
+		if (timer == 0 || timer == kNoTimer) {
 			SetEntityAlpha(corpse->pawnHandle, 0);
 			return;
 		}

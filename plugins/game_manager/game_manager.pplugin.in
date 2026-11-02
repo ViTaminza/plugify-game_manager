@@ -12,7 +12,7 @@
 	"dependencies": [
 		{
 			"name": "s2sdk",
-			"constraints": ">=2.18.2"
+			"constraints": ">=3.0.5"
 		}
 	],
 	"methods": []
