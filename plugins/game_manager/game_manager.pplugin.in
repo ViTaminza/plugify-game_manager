@@ -1,0 +1,19 @@
+{
+	"$schema": "https://raw.githubusercontent.com/untrustedmodders/plugify/refs/heads/main/schemas/plugin.schema.json",
+	"version": "${GAME_MANAGER_VERSION}",
+	"name": "game_manager",
+	"description": "Port of the SwiftlyS2 plugin GameManager (criskkky): blocks commands (radio, chat wheel, ping, BlockedCommands) and HUD messages, controls the kill feed (hide / killer only), corpses (hide / fade over spec_freeze_deathanim_time), radar and teammate headtags, mutes sounds and runs the original's server-convar toggles. Config: configs/game_manager/config.jsonc (the production layout, every option under the root GameManager object); gm_reload re-reads it. No exported methods.",
+	"author": "criskkky, ported to Plugify",
+	"website": "https://github.com/untrustedmodders/plugify",
+	"license": "GPL-3.0",
+	"entry": "bin/game_manager",
+	"platforms": [],
+	"language": "cpp",
+	"dependencies": [
+		{
+			"name": "s2sdk",
+			"constraints": ">=2.18.2"
+		}
+	],
+	"methods": []
+}
